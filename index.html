@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Solar Signals</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: one long desert-dawn page. Night-blue band up top that "sunrises" into sand, then plain working sections. */
+:root {
+  --ink: #17202e;        /* text */
+  --muted: #586274;      /* secondary text */
+  --sand: #f4f1ea;       /* page */
+  --card: #ffffff;
+  --line: #ddd8cc;
+  --sun: #e8a417;        /* accent: dawn gold */
+  --sun-ink: #8a5a00;    /* accent text on light */
+  --night: #121a2b;      /* hero band */
+  --sky: #2b6f8a;        /* links */
+  --display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ink: #e9ecf2; --muted: #a3acbb; --sand: #0f1522; --card: #172033; --line: #2a3550;
+    --sun: #f2b52e; --sun-ink: #f2b52e; --night: #0a0f1a; --sky: #7cc0db; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --ink: #e9ecf2; --muted: #a3acbb; --sand: #0f1522; --card: #172033; --line: #2a3550;
+  --sun: #f2b52e; --sun-ink: #f2b52e; --night: #0a0f1a; --sky: #7cc0db; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body { background: var(--sand); color: var(--ink); font: 17px/1.6 var(--body); }
+a { color: var(--sky); }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
+.wrap { max-width: 1040px; margin: 0 auto; padding: 0 20px; }
+h1, h2, h3 { font-family: var(--display); line-height: 1.12; text-wrap: balance; margin: 0; }
+h2 { font-size: clamp(26px, 3.4vw, 36px); font-weight: 800; }
+h3 { font-size: 19px; font-weight: 700; }
+p { margin: 0; max-width: 65ch; }
+
+/* Top bar */
+.bar { background: var(--night); color: #fff; }
+.bar .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 14px; padding-bottom: 14px; flex-wrap: wrap; }
+.brand { font-family: var(--display); font-weight: 800; letter-spacing: .02em; font-size: 18px; display: flex; align-items: center; gap: 10px; }
+.brand svg { flex: none; }
+.bar nav { display: flex; gap: 18px; flex-wrap: wrap; font-size: 15px; }
+.bar nav a { color: #d6deea; text-decoration: none; }
+.bar nav a:hover { color: #fff; text-decoration: underline; }
+
+/* Hero */
+.hero { background: linear-gradient(180deg, var(--night) 0%, #1e2a44 55%, #6b4a2a 88%, #c98a2a 100%); color: #fff; }
+.hero .wrap { display: grid; gap: 22px; padding-top: 44px; padding-bottom: 52px; }
+.opener { width: 100%; aspect-ratio: 16 / 9; border-radius: 16px; display: block; box-shadow: 0 20px 50px #0008; background: #0a101e; }
+.hero h1 { font-size: clamp(36px, 6vw, 64px); font-weight: 800; max-width: 16ch; }
+.hero .lead { font-size: 19px; color: #e7ecf4; }
+.hero .tag { color: #ffd98a; font-weight: 600; }
+.ctas { display: flex; gap: 12px; flex-wrap: wrap; }
+.btn { display: inline-block; font: 600 16px var(--body); padding: 12px 18px; border-radius: 10px; text-decoration: none; border: 2px solid transparent; cursor: pointer; }
+.btn-sun { background: var(--sun); color: #1b1300; }
+.btn-ghost { border-color: #ffffffaa; color: #fff; }
+.disclose-top { font-size: 14px; color: #e7ecf4; }
+
+section { padding: 56px 0; }
+section + section { border-top: 1px solid var(--line); }
+.intro { display: grid; gap: 10px; margin-bottom: 26px; }
+.intro p { color: var(--muted); }
+
+/* Who it's for */
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+.tile { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: grid; gap: 8px; align-content: start; }
+.tile .k { font-size: 13px; font-weight: 600; color: var(--sun-ink); text-transform: uppercase; letter-spacing: .06em; }
+.tile p { color: var(--muted); font-size: 16px; }
+
+/* Honest numbers */
+.numbers { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+.num { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+.num b { display: block; font: 800 30px var(--display); font-variant-numeric: tabular-nums; }
+.num span { color: var(--muted); font-size: 15px; }
+.num.good { border-left: 6px solid #2f8a4e; }
+.num.slow { border-left: 6px solid #b7791f; }
+.fine { font-size: 14px; color: var(--muted); margin-top: 14px; }
+
+/* Calculator */
+.calc { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 20px; }
+@media (max-width: 760px) { .calc { grid-template-columns: 1fr; } }
+form.inputs { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px 16px; }
+label { display: grid; gap: 4px; font-size: 14px; color: var(--muted); }
+input, select { font: 16px var(--body); color: var(--ink); background: var(--sand); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; width: 100%; }
+.results { display: grid; gap: 12px; align-content: start; }
+.results .num b { font-size: 28px; }
+#err { color: #b42318; font-size: 15px; min-height: 1em; }
+
+/* Suppliers */
+.makers { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+.maker { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: grid; gap: 10px; align-content: start; }
+.pill { justify-self: start; font-size: 13px; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
+.pill.live { background: #2f8a4e22; color: #2f8a4e; }
+.pill.soon { background: #b7791f22; color: var(--sun-ink); }
+.maker p { color: var(--muted); font-size: 16px; }
+
+/* Builders */
+.builders { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 760px) { .builders { grid-template-columns: 1fr; } }
+.builders ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+.contact { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: grid; gap: 10px; }
+.contact code { font-size: 16px; }
+
+
+/* Scenario tabs */
+.tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+.tab { font: 700 15px var(--body); padding: 10px 16px; border-radius: 999px; border: 2px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer; }
+.tab small { display: block; font-weight: 500; font-size: 12px; color: var(--muted); }
+.tab[aria-selected="true"] { background: var(--night); border-color: var(--sun); color: #fff; }
+.tab[aria-selected="true"] small { color: #ffd98a; }
+fieldset { border: 0; padding: 0; margin: 0; display: contents; }
+fieldset[hidden] { display: none; }
+.sub { grid-column: 1 / -1; font: 700 13px var(--body); text-transform: uppercase; letter-spacing: .06em; color: var(--sun-ink); border-top: 1px solid var(--line); padding-top: 10px; margin-top: 4px; }
+/* Power growth bars */
+.power { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px; margin-top: 20px; display: grid; gap: 10px; }
+.power h3 { font-size: 22px; }
+.power .big { color: var(--sun-ink); }
+.prow { display: grid; grid-template-columns: 150px 1fr 110px; gap: 10px; align-items: center; font-size: 15px; }
+@media (max-width: 560px) { .prow { grid-template-columns: 1fr 90px; } .prow .track { grid-column: 1 / -1; grid-row: 2; } }
+.track { background: var(--sand); border-radius: 6px; height: 18px; overflow: hidden; }
+.fill { height: 100%; background: var(--sun); border-radius: 6px; transition: width .5s ease; }
+.fill.ev { background: #2b6f8a; } .fill.taxi { background: #6a8fb8; } .fill.bot { background: #8a5ab8; }
+.prow b { font-variant-numeric: tabular-nums; text-align: right; }
+@media (prefers-reduced-motion: reduce) { .fill { transition: none; } }
+/* Someday panel */
+.someday { margin-top: 20px; border: 2px dashed var(--sun); border-radius: 14px; padding: 20px; display: grid; gap: 14px; background: color-mix(in srgb, var(--sun) 7%, var(--card)); }
+.someday .flag { justify-self: start; background: var(--sun); color: #1b1300; font: 800 13px var(--body); padding: 4px 12px; border-radius: 999px; letter-spacing: .04em; }
+.someday .grid2 { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 20px; }
+@media (max-width: 760px) { .someday .grid2 { grid-template-columns: 1fr; } }
+.someday .inputs { background: var(--card); }
+.someday .num b { font-size: 28px; }
+
+/* Future steps */
+.future { background: linear-gradient(180deg, #c98a2a14, transparent 60%); }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; counter-reset: s; }
+.step { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px; display: grid; gap: 10px; align-content: start; position: relative; color: var(--ink); }
+.step + .step::before { content: "→"; position: absolute; left: -15px; top: 40px; font: 800 22px var(--display); color: var(--sun-ink); }
+@media (max-width: 800px) { .step + .step::before { display: none; } }
+.step .when { font: 700 13px var(--body); text-transform: uppercase; letter-spacing: .08em; color: var(--sun-ink); }
+.step p { color: var(--muted); font-size: 16px; }
+.step .btn { justify-self: start; border: 0; }
+
+footer { background: var(--night); color: #c9d1de; font-size: 14px; }
+footer .wrap { padding-top: 28px; padding-bottom: 36px; display: grid; gap: 10px; }
+footer a { color: #ffd98a; }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div class="wrap">
+    <div class="brand">
+      <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="17" r="7" fill="#e8a417"/><path d="M2 21h24" stroke="#fff" stroke-width="2"/><path d="M14 3v4M5 8l3 3M23 8l-3 3" stroke="#e8a417" stroke-width="2" stroke-linecap="round"/></svg>
+      Solar Signals
+    </div>
+    <nav aria-label="Sections">
+      <a href="#future">The future</a>
+      <a href="#who">Who it's for</a>
+      <a href="#numbers">Real numbers</a>
+      <a href="#calculator">Calculator</a>
+      <a href="#kits">Kits</a>
+      <a href="#builders">For builders</a>
+    </nav>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <video class="opener" src="media/be-the-future.mp4" poster="media/poster.jpg" autoplay muted loop playsinline aria-label="Be the future with solar: a home powers itself, then two electric cars, then two robots."></video>
+    <h1>Turn your home into the outlet the future plugs into.</h1>
+    <p class="lead">Your lights and AC today. Your cars next. Robots after that. Everything coming runs on electricity, and the home that makes its own is the one that plugs into all of it. Solar Signals helps you pick a whole-property solar and battery kit from makers we trust, even on land past the power lines.</p>
+    <p class="tag">Live anywhere. Own your power. Plug into what's next.</p>
+    <div class="ctas">
+      <a class="btn btn-sun" href="#calculator">Run Numbers 1, 2 and 3</a>
+      <a class="btn btn-ghost" href="#future">See the future</a>
+    </div>
+    <p class="disclose-top">We earn a commission if you buy through our links. It never changes your price or what we tell you.</p>
+  </div>
+</header>
+
+<main>
+<section id="future" class="future">
+  <div class="wrap">
+    <div class="intro">
+      <h2>Your home is the outlet. Here's what plugs in.</h2>
+      <p>Each step adds a machine that runs on electricity. A home with its own panels and battery is ready for every one of them.</p>
+    </div>
+    <ol class="steps">
+      <li class="step"><span class="when">Today</span>
+        <svg viewBox="0 0 64 64" width="56" height="56" aria-hidden="true"><path d="M8 30 32 10l24 20v24H8z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><rect x="26" y="38" width="12" height="16" fill="currentColor"/><circle cx="50" cy="12" r="6" fill="#e8a417"/></svg>
+        <h3>Power the home</h3><p>Lights, AC, well pump. Cut the bill, or skip the power line entirely.</p>
+        <button class="btn btn-sun go" data-s="1">Numbers 1</button></li>
+      <li class="step"><span class="when">Next</span>
+        <svg viewBox="0 0 64 64" width="56" height="56" aria-hidden="true"><path d="M8 40l6-14h36l6 14v8H8z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><circle cx="18" cy="48" r="5" fill="currentColor"/><circle cx="46" cy="48" r="5" fill="currentColor"/><path d="M34 6l-6 12h8l-6 12" fill="none" stroke="#e8a417" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <h3>Fuel your cars from your roof</h3><p>Two gas cars become two EVs. Stop buying gas. One day, they may drive for others while you sleep.</p>
+        <button class="btn btn-sun go" data-s="2">Numbers 2</button></li>
+      <li class="step"><span class="when">The future</span>
+        <svg viewBox="0 0 64 64" width="56" height="56" aria-hidden="true"><rect x="20" y="6" width="24" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="28" cy="15" r="2.5" fill="#e8a417"/><circle cx="36" cy="15" r="2.5" fill="#e8a417"/><rect x="18" y="28" width="28" height="20" rx="4" fill="none" stroke="currentColor" stroke-width="3"/><path d="M24 48v10M40 48v10M18 34l-8 8M46 34l8 8" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+        <h3>Charge your robots</h3><p>One robot helps at home. One may work for others, around the clock. Both run on your sun.</p>
+        <button class="btn btn-sun go" data-s="3">Numbers 3</button></li>
+    </ol>
+    <p class="fine">Robotaxi and robot-for-hire income isn't available to owners yet. We show it so you can see what's coming, with the math and the fine print, in Numbers 2 and 3.</p>
+  </div>
+</section>
+
+<section id="who">
+  <div class="wrap">
+    <div class="intro">
+      <h2>Who it's for</h2>
+      <p>The best fit is a property where power from the utility is missing, expensive to bring in, or unreliable. That's where a kit pays for itself fastest.</p>
+    </div>
+    <div class="tiles">
+      <div class="tile"><span class="k">No power lines</span><h3>Off-grid land and cabins</h3><p>When the utility wants tens of thousands to run a line out, a kit can cost less than the hookup on day one.</p></div>
+      <div class="tile"><span class="k">Many units</span><h3>RV parks, glamping and lodges</h3><p>Cabins, bathhouses, pumps and guest EV charging, without a generator running all night.</p></div>
+      <div class="tile"><span class="k">Remote loads</span><h3>Ranches, farms and vineyards</h3><p>Well pumps, gates, barns and lighting far from the nearest pole.</p></div>
+      <div class="tile"><span class="k">High rates</span><h3>California homes</h3><p>California pays some of the highest power prices in the country, so solar pays back much faster here than in Arizona or Nevada.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="numbers">
+  <div class="wrap">
+    <div class="intro">
+      <h2>Real numbers, including the slow ones</h2>
+      <p>Same example kit everywhere: 5.4 kW of panels, about $9,200 for the kit plus $3,000 to install, no incentives (the federal homeowner tax credit ended after 2025). Average home rates from the U.S. Energy Information Administration, March 2026.</p>
+    </div>
+    <div class="numbers">
+      <div class="num good"><b>Day one</b><span>Off-grid property that skips a $20,000 utility line extension</span></div>
+      <div class="num good"><b>~6 years</b><span>California home on the grid</span></div>
+      <div class="num slow"><b>~17 years</b><span>Arizona home on the grid</span></div>
+      <div class="num slow"><b>~19 years</b><span>Nevada home on the grid</span></div>
+    </div>
+    <p class="fine">If you're on the grid in Arizona or Nevada, we'll tell you plainly that the money case is slow. The strong reasons there are independence, backup and land without power. Estimates only; your site, shade and use will change them.</p>
+  </div>
+</section>
+
+<section id="calculator">
+  <div class="wrap">
+    <div class="intro">
+      <h2>Run your numbers: today, next, and the future</h2>
+      <p>Pick a scenario. Each one adds to your property's power needs, and shows what it takes for your own solar to cover them. Plain arithmetic on what you enter. Nothing here is a promise.</p>
+    </div>
+    <div class="tabs" role="tablist" aria-label="Scenarios">
+      <button class="tab" role="tab" id="t1" aria-selected="true" data-s="1">Numbers 1<small>Your home today</small></button>
+      <button class="tab" role="tab" id="t2" aria-selected="false" data-s="2">Numbers 2<small>The robotaxi garage</small></button>
+      <button class="tab" role="tab" id="t3" aria-selected="false" data-s="3">Numbers 3<small>The future: robots at home</small></button>
+    </div>
+    <div class="calc">
+      <form class="inputs" id="f" novalidate>
+        <label for="region">Where is the property?
+          <select id="region" name="region"><option value="CA">California</option><option value="AZ">Arizona</option><option value="NV">Nevada</option></select></label>
+        <label for="grid">Power today
+          <select id="grid" name="grid"><option value="grid">On the grid</option><option value="off">Off-grid (generator)</option></select></label>
+        <label for="panelKw">Panels for the home (kW)
+          <input id="panelKw" name="panelKw" type="number" step="0.1" min="0.5" value="5.4"></label>
+        <label for="homeUseKwh">Home power per year (kWh, from bills)
+          <input id="homeUseKwh" name="homeUseKwh" type="number" min="0" value="10000"></label>
+        <label for="kitCost">Kit price ($)
+          <input id="kitCost" name="kitCost" type="number" min="0" value="9232"></label>
+        <label for="installCost">Install and permits ($)
+          <input id="installCost" name="installCost" type="number" min="0" value="3000"></label>
+        <label for="lineCost">Utility line extension you'd skip ($, from a real quote)
+          <input id="lineCost" name="lineCost" type="number" min="0" value="0"></label>
+        <label for="genCost">Off-grid: what a generator kWh costs you ($)
+          <input id="genCost" name="genCost" type="number" step="0.01" min="0" value="0.45"></label>
+        <fieldset id="fs2" hidden>
+          <span class="sub">Two gas cars become two EVs</span>
+          <label for="miles">Miles per car per year
+            <input id="miles" type="number" min="0" value="12000"></label>
+          <label for="mpg">Your gas cars' mpg
+            <input id="mpg" type="number" min="1" value="25"></label>
+          <label for="gas">Gas price ($/gal)
+            <input id="gas" type="number" step="0.01" min="0" value="5.74"></label>
+          <label for="evEff">EV use (kWh per mile)
+            <input id="evEff" type="number" step="0.01" min="0" value="0.30"></label>
+        </fieldset>
+        <fieldset id="fs3" hidden>
+          <span class="sub">Two robots plug in at home</span>
+          <label for="botKwh">Robot power while working (kWh per hour)
+            <input id="botKwh" type="number" step="0.05" min="0" value="0.3"></label>
+          <label for="homeBotHrs">Home robot: hours a day
+            <input id="homeBotHrs" type="number" min="0" max="24" value="6"></label>
+          <label for="workBotHrs">Work robot: hours a day
+            <input id="workBotHrs" type="number" min="0" max="24" value="22"></label>
+        </fieldset>
+      </form>
+      <div class="results" aria-live="polite">
+        <div class="num"><span>Upfront solar, after any skipped hookup</span><b id="up">–</b></div>
+        <div class="num"><span id="y1l">First-year savings</span><b id="y1">–</b></div>
+        <div class="num"><span>Pays back in</span><b id="pb">–</b></div>
+        <div class="num"><span>25-year net</span><b id="t25">–</b></div>
+        <p id="err"></p>
+        <p class="fine" id="asm"></p>
+      </div>
+    </div>
+
+    <div class="power" id="power" hidden>
+      <h3 id="powerHead">Your power needs grow</h3>
+      <div class="prow"><span>Home</span><div class="track"><div class="fill" id="bHome"></div></div><b id="vHome"></b></div>
+      <div class="prow"><span>Two EVs</span><div class="track"><div class="fill ev" id="bEv"></div></div><b id="vEv"></b></div>
+      <div class="prow" id="rowTaxi" hidden><span>Robotaxi miles</span><div class="track"><div class="fill taxi" id="bTaxi"></div></div><b id="vTaxi"></b></div>
+      <div class="prow" id="rowBot" hidden><span>Two robots</span><div class="track"><div class="fill bot" id="bBot"></div></div><b id="vBot"></b></div>
+      <p class="fine" id="powerNote"></p>
+    </div>
+
+    <div class="someday" id="someday" hidden>
+      <span class="flag">THE FUTURE · NOT AVAILABLE YET</span>
+      <h3 id="sdHead"></h3>
+      <p id="sdStatus"></p>
+      <div class="grid2">
+        <form class="inputs" id="f2" novalidate>
+          <fieldset id="sd2">
+            <label for="taxiMi">Paid miles per car per day
+              <input id="taxiMi" type="number" min="0" value="60"></label>
+            <label for="fare">Fare per paid mile ($)
+              <input id="fare" type="number" step="0.05" min="0" value="1.50"></label>
+            <label for="taxiCut">Network's cut (%)
+              <input id="taxiCut" type="number" min="0" max="100" value="25"></label>
+            <label for="taxiCost">Your cost per mile: wear, tires, insurance, cleaning ($)
+              <input id="taxiCost" type="number" step="0.01" min="0" value="0.25"></label>
+          </fieldset>
+          <fieldset id="sd3" hidden>
+            <label for="rate">Hourly rate the work robot earns ($, 10 to 20)
+              <input id="rate" type="range" min="10" max="20" step="1" value="15"><output id="rateOut">$15</output></label>
+            <label for="booked">Share of its hours actually booked (%)
+              <input id="booked" type="number" min="0" max="100" value="50"></label>
+            <label for="botCut">Platform's cut (%)
+              <input id="botCut" type="number" min="0" max="100" value="25"></label>
+            <label for="botPrice">Price of each robot ($)
+              <input id="botPrice" type="number" min="0" value="20000"></label>
+            <label for="botLife">Years a robot lasts
+              <input id="botLife" type="number" min="1" value="5"></label>
+          </fieldset>
+        </form>
+        <div class="results">
+          <div class="num"><span>Gross a year, before any costs</span><b id="sdGross">–</b></div>
+          <div class="num"><span>Net a year, after the cut, costs and power</span><b id="sdNet">–</b></div>
+          <p class="fine" id="sdAsm"></p>
+        </div>
+      </div>
+      <p class="fine"><b>Kept out of every solar number above.</b> Buying a solar kit does not earn this money. It shows only what powering these machines yourself could look like if these services open to owners. Your real results could be zero.</p>
+    </div>
+  </div>
+</section>
+
+<section id="kits">
+  <div class="wrap">
+    <div class="intro">
+      <h2>Kits we point people to</h2>
+      <p>We don't make or sell anything ourselves. We compare complete kits from a few makers and send you to the one that fits your property.</p>
+    </div>
+    <div class="makers">
+      <div class="maker"><span class="pill live">Available now</span><h3>SunGoldPower</h3><p>Complete residential solar kits, off-grid and hybrid, based in Irvine, California. Good for cabins, homes and whole-property systems.</p><a class="btn btn-sun" href="#" aria-disabled="true">Shop SunGoldPower</a></div>
+      <div class="maker"><span class="pill soon">Being added</span><h3>Renogy</h3><p>Off-grid kits for cabins, RVs and remote buildings, from small systems to whole homes.</p></div>
+      <div class="maker"><span class="pill soon">Being added</span><h3>EcoFlow</h3><p>Whole-home battery backup with solar, for homes that want power through outages without a full rooftop install.</p></div>
+    </div>
+    <p class="fine">Disclosure: we earn a commission on purchases made through our links, at no extra cost to you. Makers don't pay us to rank them, and no maker sponsors this site.</p>
+  </div>
+</section>
+
+<section id="builders">
+  <div class="wrap builders">
+    <div class="intro">
+      <h2>For builders: put power in the package</h2>
+      <p>Your buyers bought land past the power lines. Handing them a ready-to-install solar and battery kit with the cabin or tiny home answers their first question before they ask it.</p>
+      <ul>
+        <li>We size a kit for each model you build.</li>
+        <li>Your buyer orders it directly from the maker. No inventory for you.</li>
+        <li>You keep building; we handle the comparisons and paperwork.</li>
+      </ul>
+    </div>
+    <div class="contact">
+      <h3>Talk to us</h3>
+      <p>Email <code>hello@getsolarsignals.com</code></p>
+      <p class="fine">Based in San Clemente, California.</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p><b>Solar Signals</b> · getsolarsignals.com · San Clemente, California</p>
+    <p>Estimates on this site come from the numbers you enter and public averages. They are not a quote, a guarantee or financial advice. We earn a commission if you buy through our links.</p>
+  </div>
+</footer>
+
+<script>
+// Each solar kWh counted once, no incentives assumed. Income panels are never added to solar totals.
+const REGIONS = { CA: {rate: 0.3335, yield: 1550, gas: 5.74}, AZ: {rate: 0.1559, yield: 1700, gas: 4.25}, NV: {rate: 0.1417, yield: 1700, gas: 5.06} };
+const NAMES = { CA: 'California', AZ: 'Arizona', NV: 'Nevada' };
+const $ = id => document.getElementById(id);
+const v = id => Number($(id).value);
+const usd = n => (n < 0 ? '-$' : '$') + Math.abs(Math.round(n)).toLocaleString('en-US');
+const kwh = n => Math.round(n).toLocaleString('en-US') + ' kWh';
+let scen = 1, lastRegion = 'CA';
+
+function run() {
+  const rk = $('region').value, reg = REGIONS[rk], off = $('grid').value === 'off';
+  if (rk !== lastRegion) { $('gas').value = reg.gas.toFixed(2); lastRegion = rk; }
+  const kw = v('panelKw'), use = v('homeUseKwh'), kit = v('kitCost'), inst = v('installCost'), line = v('lineCost'), gen = v('genCost');
+  const ok = n => Number.isFinite(n) && n >= 0;
+  if (!(kw > 0) || ![use, kit, inst, line].every(ok) || (off && !(gen > 0)) || (scen >= 2 && (!(v('mpg') > 0) || ![v('miles'), v('gas'), v('evEff')].every(ok)))) {
+    $('err').textContent = 'Enter positive numbers in every box to see an estimate.'; return;
+  }
+  $('err').textContent = '';
+  const price = off ? gen : reg.rate, share = 0.8, degr = 0.005, maint = 100, battYear = 12;
+  const perKw = (kit + inst) / kw;                         // your own kit's cost per kW, reused for added panels
+  const evKwh = scen >= 2 ? 2 * v('miles') * v('evEff') : 0;
+  const gasYr = scen >= 2 ? 2 * v('miles') / v('mpg') * v('gas') : 0;
+  const botKwh = scen >= 3 ? v('botKwh') * (v('homeBotHrs') + v('workBotHrs')) * 365 : 0;
+  const total = use + evKwh + botKwh;
+  const addKw = (evKwh + botKwh) / (reg.yield * share);    // panels sized to cover the new loads
+  const kwAll = kw + addKw, scale = kwAll / kw;
+  const upfront = (kit + inst) * scale - line, battCost = 4000 * scale;
+  // Without solar you'd buy all power at `price` and keep buying gas. With solar, you buy only what solar doesn't cover.
+  let cum = -upfront, payback = null, first = 0;
+  for (let y = 1; y <= 25; y++) {
+    const solar = Math.min(kwAll * reg.yield * (1 - degr) ** (y - 1) * share, total);
+    const net = solar * price + gasYr - maint - (y === battYear ? battCost : 0);
+    if (y === 1) first = net;
+    cum += net;
+    if (payback === null && cum >= 0) payback = y;
+  }
+  $('up').textContent = usd(upfront);
+  $('y1l').textContent = scen === 1 ? 'First-year savings' : scen === 2 ? 'First-year savings, power plus the gas you stop buying' : 'First-year savings, power, gas and robot charging';
+  $('y1').textContent = usd(first);
+  $('pb').textContent = upfront <= 0 ? 'Day one' : payback ? `${payback} years` : 'Not within 25 years';
+  $('t25').textContent = usd(cum);
+  const base = `${NAMES[rk]}: ${off ? '$' + gen.toFixed(2) + ' per generator kWh' : '$' + reg.rate + ' per kWh (EIA average, March 2026)'}, about ${reg.yield.toLocaleString('en-US')} kWh per kW of panels per year, 80% of solar used on site, $100 a year upkeep, a battery replacement in year 12, no incentives.`;
+  const extra = scen === 1 ? '' : ` Adds ${addKw.toFixed(1)} kW of panels (about ${usd(perKw * addKw)} at your kit's price per kW) to cover the new loads.${scen >= 2 ? ` Gas at $${v('gas').toFixed(2)}/gal (AAA state average, Nov 9, 2026). The price of the EVs and robots is not included.` : ''}`;
+  $('asm').textContent = 'Assumes ' + base + extra;
+
+  // Power growth bars
+  $('power').hidden = scen === 1;
+  if (scen >= 2) {
+    const taxi = 2 * v('taxiMi') * 365 * v('evEff');
+    const show = [use, evKwh, scen === 2 ? taxi : 0, botKwh];
+    const max = Math.max(...[use + evKwh + (scen === 2 ? taxi : 0) + botKwh]) || 1;
+    [['bHome','vHome',show[0]],['bEv','vEv',show[1]],['bTaxi','vTaxi',show[2]],['bBot','vBot',show[3]]].forEach(([b, t, n]) => { $(b).style.width = (100 * n / max) + '%'; $(t).textContent = kwh(n); });
+    $('rowTaxi').hidden = scen !== 2; $('rowBot').hidden = scen !== 3;
+    const all = show.reduce((a, b) => a + b, 0), x = all / (use || 1);
+    $('powerHead').innerHTML = `Your power needs go from ${kwh(use)} to <span class="big">${kwh(all)}</span>, ${x.toFixed(1)}× today`;
+    $('powerNote').textContent = scen === 2
+      ? `Robotaxi miles would need another ${(taxi / (reg.yield * share)).toFixed(1)} kW of panels to run on your own sun. They are shown here, not in the solar numbers above.`
+      : 'The more machines run on electricity, the more owning your own power is worth.';
+  }
+
+  // Someday income panel
+  $('someday').hidden = scen === 1;
+  $('sd2').hidden = scen !== 2; $('sd3').hidden = scen !== 3;
+  if (scen === 2) {
+    const mi = 2 * v('taxiMi') * 365, gross = mi * v('fare'), keep = 1 - v('taxiCut') / 100;
+    const net = gross * keep - mi * v('taxiCost') - mi * v('evEff') * price;
+    $('sdHead').textContent = 'If your two EVs could work as robotaxis while you don’t need them';
+    $('sdStatus').textContent = 'Where it stands, Nov 2026: Tesla runs robotaxis in four Texas cities with its own cars. Owners cannot add their cars yet; code for it has shown up in Tesla’s app, and Elon Musk has said Tesla would keep about 25%. No date, no guarantee, and other networks may never open to owners.';
+    $('sdGross').textContent = usd(gross);
+    $('sdNet').textContent = usd(net);
+    $('sdAsm').textContent = `${Math.round(mi).toLocaleString('en-US')} paid miles a year for both cars. Net subtracts the network's cut, your per-mile costs and charging at ${off ? 'your generator cost' : 'your utility rate'}. Doesn't count the car's lost value from extra miles, empty miles between rides, taxes, or days with no riders.`;
+  } else if (scen === 3) {
+    $('rateOut').textContent = '$' + v('rate');
+    const hrs = v('workBotHrs') * 365 * v('booked') / 100, gross = hrs * v('rate');
+    const net = gross * (1 - v('botCut') / 100) - v('botPrice') / v('botLife') - v('botKwh') * v('workBotHrs') * 365 * price;
+    $('sdHead').textContent = 'If your work robot could earn for others while your home robot handles the chores';
+    $('sdStatus').textContent = 'Where it stands, Nov 2026: the 1X NEO home robot sells for $20,000 or $499 a month and is partly guided by remote human operators. Tesla Optimus is not for sale. No marketplace pays owners to rent out a robot by the hour today.';
+    $('sdGross').textContent = usd(gross);
+    $('sdNet').textContent = usd(net);
+    $('sdAsm').textContent = `${Math.round(hrs).toLocaleString('en-US')} booked hours a year at $${v('rate')}/hr. Net subtracts the platform's cut, the work robot's price spread over ${v('botLife')} years and its charging at ${off ? 'your generator cost' : 'your utility rate'}. The home robot's price (${usd(v('botPrice'))}) is a cost of living with it, not counted here. Doesn't count repairs, insurance, taxes or getting the robot to the job.`;
+  }
+}
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+  scen = Number(t.dataset.s);
+  document.querySelectorAll('.tab').forEach(o => o.setAttribute('aria-selected', String(o === t)));
+  $('fs2').hidden = scen < 2; $('fs3').hidden = scen < 3;
+  run();
+}));
+document.querySelectorAll('.go').forEach(b => b.addEventListener('click', () => { $('t' + b.dataset.s).click(); $('calculator').scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'}); }));
+$('f').addEventListener('input', run);
+$('f2').addEventListener('input', run);
+run();
+if (matchMedia('(prefers-reduced-motion: reduce)').matches) { const o = document.querySelector('.opener'); o.removeAttribute('autoplay'); o.pause(); o.controls = true; }
+</script>
+</body>
+</html>
