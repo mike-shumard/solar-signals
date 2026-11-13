@@ -174,6 +174,21 @@ class VaultTest(unittest.TestCase):
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertIn('PASS:', r.stdout)
 
+    def test_15_local_rclone_remote_cannot_claim_cloud_backup(self):
+        fake = self.root / 'fake-rclone.conf'
+        fake.write_text('[giza]\ntype = local\n')
+        fake.chmod(0o600)
+        prior = os.environ.get('RCLONE_CONFIG')
+        os.environ['RCLONE_CONFIG'] = str(fake)
+        args = self.args(self.root / 'fake-cloud-receipt')
+        args.repository = 'rclone:giza:fake'
+        try:
+            with self.assertRaises(ValueError): vault.backup(args)
+            self.assertFalse((args.out / 'receipt.json').exists())
+        finally:
+            if prior is None: os.environ.pop('RCLONE_CONFIG', None)
+            else: os.environ['RCLONE_CONFIG'] = prior
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

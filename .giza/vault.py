@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """One-project restic backup and cold restore. Never sends mail or deploys."""
 import argparse
+import configparser
 import hashlib
 import io
 import json
@@ -129,6 +130,22 @@ def backup(args):
     if repo.startswith('rclone:') and not os.environ.get('RCLONE_CONFIG'):
         raise ValueError('RCLONE_CONFIG is required for Drive')
     env = dict(os.environ)
+    if repo.startswith('rclone:'):
+        config_path = Path(env['RCLONE_CONFIG']).resolve()
+        config = configparser.ConfigParser(interpolation=None)
+        config.read_string(config_path.read_text())
+        allowed = {'type', 'scope', 'token', 'client_id', 'client_secret'}
+        if (config.sections() != ['giza'] or config['giza'].get('type') != 'drive'
+                or config['giza'].get('scope') != 'drive.file'
+                or not config['giza'].get('token') or set(config['giza']) - allowed):
+            raise ValueError('Cloud claims require the app-scoped Google Drive backend, not an alias or local remote')
+        if stat.S_IMODE(config_path.stat().st_mode) & 0o077:
+            raise ValueError('Rclone configuration must be private (mode 600)')
+        # Environment overrides must not change this verified remote into another backend.
+        for name in list(env):
+            if name.startswith('RCLONE_'):
+                env.pop(name)
+        env['RCLONE_CONFIG'] = str(config_path)
     for name in ('RESTIC_PASSWORD', 'RESTIC_PASSWORD_COMMAND', 'RESTIC_REPOSITORY', 'RESTIC_REPOSITORY_FILE'):
         env.pop(name, None)
     env['RESTIC_PASSWORD_FILE'] = str(key.resolve())

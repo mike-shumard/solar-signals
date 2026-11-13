@@ -16,11 +16,12 @@ def main():
     ini.read_string(path.read_text())
     if 'giza' not in ini or ini['giza'].get('type') != 'drive' or ini['giza'].get('scope') != 'drive.file':
         raise ValueError('Expected a freshly authorized giza remote with drive.file scope')
-    if not ini['giza'].get('token') or ini['giza'].get('root_folder_id'):
+    if not ini['giza'].get('token') or ini['giza'].get('root_folder_id') or ini['giza'].get('team_drive'):
         raise ValueError('Use app-created storage without an unrelated root_folder_id')
     # Copy only the authorized remote, never other accounts from the same config.
     narrow = configparser.ConfigParser(interpolation=None)
-    narrow['giza'] = dict(ini['giza'])
+    allowed = {'type', 'scope', 'token', 'client_id', 'client_secret'}
+    narrow['giza'] = {k: v for k, v in ini['giza'].items() if k in allowed}
     import io
     out = io.StringIO()
     narrow.write(out)
