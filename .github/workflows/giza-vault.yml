@@ -1,0 +1,58 @@
+name: Giza encrypted backup and practice restore
+on:
+  workflow_dispatch:
+    inputs:
+      initialize:
+        description: Create a NEW vault (false for every later run)
+        type: boolean
+        default: false
+  schedule:
+    - cron: '41 10 * * *'
+permissions:
+  contents: read
+concurrency:
+  group: giza-vault
+  cancel-in-progress: false
+jobs:
+  backup:
+    if: github.event_name == 'workflow_dispatch' || vars.GIZA_VAULT_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install distribution backup tools
+        run: sudo apt-get update -qq && sudo apt-get install -y restic rclone
+      - name: Prepare protected configuration
+        env:
+          GIZA_VAULT_CONFIG: ${{ secrets.GIZA_VAULT_CONFIG }}
+        run: python3 .giza/configure_runner.py
+      - name: Back up, read all encrypted data, restore and compare
+        env:
+          INITIALIZE: ${{ inputs.initialize }}
+          VAULT_PATH: ${{ vars.GIZA_VAULT_PATH }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$VAULT_PATH" || { echo 'GIZA_VAULT_PATH is missing'; exit 1; }
+          extra=()
+          if [[ "$INITIALIZE" == 'true' ]]; then extra+=(--initialize); fi
+          python3 .giza/vault.py backup --source "$GITHUB_WORKSPACE" \
+            --repository "rclone:giza:$VAULT_PATH" \
+            --out "$RUNNER_TEMP/giza-receipt" "${extra[@]}"
+      - name: Preserve verification receipt (never the password or rclone config)
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: giza-vault-receipt-${{ github.run_id }}
+          path: ${{ runner.temp }}/giza-receipt/
+          if-no-files-found: ignore
+          retention-days: 30
+      - name: Remove temporary credentials
+        if: always()
+        shell: bash
+        run: |
+          test -z "${RESTIC_PASSWORD_FILE:-}" || rm -f -- "$RESTIC_PASSWORD_FILE"
+          test -z "${RCLONE_CONFIG:-}" || rm -f -- "$RCLONE_CONFIG"
