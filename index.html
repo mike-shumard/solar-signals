@@ -64,6 +64,7 @@ p { margin: 0; max-width: 65ch; }
 .ctas { display: flex; gap: 12px; flex-wrap: wrap; }
 .btn { display: inline-block; font: 600 16px var(--body); padding: 12px 18px; border-radius: 10px; text-decoration: none; border: 2px solid transparent; cursor: pointer; }
 .btn-sun { background: var(--sun); color: #1b1300; }
+.btn:disabled { opacity: .58; cursor: not-allowed; }
 .btn-ghost { border-color: #ffffffaa; color: #fff; }
 .disclose-top { font-size: 14px; color: #e7ecf4; }
 
@@ -362,7 +363,7 @@ footer a { color: #ffd98a; }
       <p>We don't make or sell anything ourselves. We compare complete kits from a few makers and send you to the one that fits your property.</p>
     </div>
     <div class="makers">
-      <div class="maker"><span class="pill live">Available now</span><h3>SunGoldPower</h3><p>Complete residential solar kits, off-grid and hybrid, based in Irvine, California. Good for cabins, homes and whole-property systems.</p><a class="btn btn-sun" href="#" aria-disabled="true">Shop SunGoldPower</a></div>
+      <div class="maker"><span class="pill soon">Shopping not ready</span><h3>SunGoldPower</h3><p>Complete residential solar kits, off-grid and hybrid, based in Irvine, California. Good for cabins, homes and whole-property systems.</p><button class="btn btn-sun" type="button" disabled aria-describedby="sungold-shopping-status">Shop SunGoldPower</button><p class="fine" id="sungold-shopping-status">Shopping is not available from this page yet.</p></div>
       <div class="maker"><span class="pill soon">Being added</span><h3>Shop Solar</h3><p>Complete solar kits and battery systems for off-grid cabins, ranches and homes that want energy independence.</p></div>
     </div>
     <p class="fine">Disclosure: we earn a commission on purchases made through our links, at no extra cost to you. Makers don't pay us to rank them, and no maker sponsors this site.</p>
@@ -382,7 +383,7 @@ footer a { color: #ffd98a; }
     </div>
     <div class="contact">
       <h3>Talk to us</h3>
-      <p>Email <code>hello@getsolarsignals.com</code></p>
+      <p>Email <a href="mailto:hello@getsolarsignals.com">hello@getsolarsignals.com</a></p>
       <p class="fine">Based in San Clemente, California.</p>
     </div>
   </div>
@@ -493,3 +494,4 @@ if (matchMedia('(prefers-reduced-motion: reduce)').matches) { const o = document
 </script>
 </body>
 </html>
+
