@@ -411,9 +411,21 @@ function run() {
   const rk = $('region').value, reg = REGIONS[rk], off = $('grid').value === 'off';
   if (rk !== lastRegion) { $('gas').value = reg.gas.toFixed(2); lastRegion = rk; }
   const kw = v('panelKw'), use = v('homeUseKwh'), kit = v('kitCost'), inst = v('installCost'), line = v('lineCost'), gen = v('genCost');
-  const ok = n => Number.isFinite(n) && n >= 0;
-  if (!(kw > 0) || ![use, kit, inst, line].every(ok) || (off && !(gen > 0)) || (scen >= 2 && (!(v('mpg') > 0) || ![v('miles'), v('gas'), v('evEff')].every(ok)))) {
-    $('err').textContent = 'Enter positive numbers in every box to see an estimate.'; return;
+  $('sd2').hidden = scen !== 2; $('sd3').hidden = scen !== 3;
+  const fields = [...document.querySelectorAll('#f input, #f2 input')].filter(field => {
+    if (field.id === 'genCost') return off;
+    if (field.closest('#f2')) return scen > 1 && !field.closest('fieldset').hidden;
+    return !field.closest('fieldset[hidden]');
+  });
+  const invalid = fields.find(field => !Number.isFinite(field.valueAsNumber) || !field.validity.valid);
+  if (invalid || (off && gen <= 0)) {
+    const field = invalid || $('genCost');
+    $('err').textContent = 'Check ' + field.labels[0].firstChild.textContent.trim() + '.';
+    for (const id of ['up', 'y1', 'pb', 't25', 'sdGross', 'sdNet']) $(id).textContent = '–';
+    for (const id of ['asm', 'sdAsm', 'powerNote']) $(id).textContent = '';
+    $('power').hidden = true;
+    $('someday').hidden = scen === 1;
+    return;
   }
   $('err').textContent = '';
   const price = off ? gen : reg.rate, share = 0.8, degr = 0.005, maint = 100, battYear = 12;
